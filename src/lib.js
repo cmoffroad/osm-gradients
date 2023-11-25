@@ -4,8 +4,7 @@ const osmium = require('osmium');
 const hgt = require('node-hgt');
 const haversine = require('haversine');
 
-// const PATTERN_KEY = '([a-zA-Z0-9_]+)|"(.+)"';
-const PATTERN_KEY = '([a-zA-Z0-9_]+)';
+const PATTERN_KEY = '([^!=~]+)';
 const PATTERN_VALUE = PATTERN_KEY;
 
 function createQuery (filter) {
@@ -22,12 +21,12 @@ function createQuery (filter) {
         /* equals */ return `( o.tags["${m[1]}"] == "${m[2]}" )`;
       } else if (m = i.match(`^${PATTERN_KEY}!=${PATTERN_VALUE}$`)) {
         /* note equals */ return `( o.tags["${m[1]}"] !== undefined && o.tags["${m[1]}"] != "${m[2]}" )`;
-      } else if (m = i.match(`${PATTERN_KEY}~${PATTERN_VALUE}$`)) {
-        /* matches value */ return `( o.tags["${m[1]}"] !== undefined && o.tags["${m[1]}"].match(/${m[2]}/i)) )`;
-      } else if (m = i.match(`${PATTERN_KEY}!~${PATTERN_VALUE}$`)) {
-        /* not match value */ return `( o.tags["${m[1]}"] !== undefined && !o.tags["${m[1]}"].match(/${m[2]}/i)) )`;
-      } else if (m = i.match(`~${PATTERN_KEY}~${PATTERN_VALUE}$`)) {
-        /* matches key value */ return `( Object.keys(o.tags).some(k => k.match("${m[1]}") && o.tags[k].match(${m[2]})) )`;
+      } else if (m = i.match(`^${PATTERN_KEY}~${PATTERN_VALUE}$`)) {
+        /* matches value */ return `( o.tags["${m[1]}"] !== undefined && o.tags["${m[1]}"].match("${m[2]}") )`;
+      } else if (m = i.match(`^${PATTERN_KEY}!~${PATTERN_VALUE}$`)) {
+        /* not match value */ return `( o.tags["${m[1]}"] !== undefined && !o.tags["${m[1]}"].match("${m[2]}") )`;
+      } else if (m = i.match(`^~${PATTERN_KEY}~${PATTERN_VALUE}$`)) {
+        /* matches key value */ return `( Object.keys(o.tags).some(k => k.match("${m[1]}") && o.tags[k].match("${m[2]}")) )`;
       } else {
         return `false`
       }
@@ -91,12 +90,19 @@ const fillNodeElevations = function (coords, tileSet, categories, cb) {
 
       const categoryIndex = categories.findIndex(category => category.min <= gradient && gradient < category.max);
       if (categoryIndex !== -1) {
-        // TODO: Optimize consecutive segments
-        data[categoryIndex].push([
-          [accumulator.lastCoord.lng, accumulator.lastCoord.lat, Math.round(accumulator.lastElevation)],
-          [currentCoord.lng, currentCoord.lat, Math.round(currentCoord.elevation)]
-        ]);
+        const categoryGradients = data[categoryIndex];
+
+        const previousCoords = [accumulator.lastCoord.lng, accumulator.lastCoord.lat ];
+        const newCoords = [ currentCoord.lng, currentCoord.lat ];
+
+        if (categoryIndex === accumulator.lastCategoryIndex) {
+          categoryGradients[categoryGradients.length - 1].push(newCoords)
+        } else {
+          categoryGradients.push([ previousCoords, newCoords ]);
+        }
       }
+
+      accumulator.lastCategoryIndex = categoryIndex;
     }
 
     accumulator.lastElevation = currentCoord.elevation;
@@ -106,7 +112,8 @@ const fillNodeElevations = function (coords, tileSet, categories, cb) {
   }, {
     data: initializeGradients(categories.length),
     lastElevation: null,
-    lastCoord: null
+    lastCoord: null,
+    lastCategoryIndex: null
   }).data;
 
   cb(null, wayGradients);
