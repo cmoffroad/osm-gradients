@@ -1,31 +1,31 @@
 {
-  "name": "osm-slope",
-  "version": "1.1.0",
-  "description": "Calculate way (highway, in particular) climb and descent from OpenStreetMap data",
-  "homepage": "https://github.com/perliedman/osm-slope",
+  "name": "osm-gradients-generator",
+  "version": "0.9.0",
+  "description": "Generate GeoJSON layers for trail gradients using OpenStreetMap data.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/perliedman/osm-slope.git"
+    "url": "https://github.com/cmoffroad/osm-gradients-generator.git"
   },
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "main": "src/index.js",
   "keywords": [
     "openstreetmap",
     "osm",
+    "gradient",
     "slope",
-    "climb",
-    "descent",
-    "elevation"
+    "elevation",
+    "geojson"
   ],
-  "author": "Per Liedman <per@liedman.net>",
-  "license": "ISC",
+  "author": "Julien ETIENNE <etienne.julien@gmail.com>",
+  "license": "MIT",
   "dependencies": {
-    "async": "^0.9.0",
-    "minimist": "^1.1.1",
-    "node-hgt": "^1.0.2",
+    "async": "^3.2.5",
+    "commander": "^11.1.0",
+    "haversine": "^1.1.1",
+    "node-hgt": "^1.2.3",
     "node-status": "^1.0.0",
     "osmium": "^0.5.3"
+  },
+  "volta": {
+    "node": "8.17.0"
   }
 }
