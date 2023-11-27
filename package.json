@@ -1,0 +1,35 @@
+{
+  "name": "osm-gradients",
+  "version": "0.9.0",
+  "description": "Generate KML and GeoJSON gradients layers using OpenStreetMap data.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cmoffroad/osm-gradients.git"
+  },
+  "bin": {
+    "osm-gradients": "src/index.js"
+  },
+  "keywords": [
+    "openstreetmap",
+    "osm",
+    "gradient",
+    "slope",
+    "elevation",
+    "geojson",
+    "kml"
+  ],
+  "author": "Julien ETIENNE <etienne.julien@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "async": "^3.2.5",
+    "commander": "^11.1.0",
+    "haversine": "^1.1.1",
+    "node-hgt": "^1.2.3",
+    "node-status": "^1.0.0",
+    "osmium": "^0.5.3",
+    "tokml": "^0.4.0"
+  },
+  "volta": {
+    "node": "8.17.0"
+  }
+}
