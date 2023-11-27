@@ -3,6 +3,9 @@ const async = require('async');
 const osmium = require('osmium');
 const hgt = require('node-hgt');
 const haversine = require('haversine');
+const tokml = require('tokml');
+
+const colorsMap = require('./colors');
 
 const PATTERN_KEY = '([^!=~]+)';
 const PATTERN_VALUE = PATTERN_KEY;
@@ -42,12 +45,13 @@ const createCategories = function (stops, colors) {
   return stops.reduce((result, stop, index) => {
     const currentStop = stop;
     const nextStop = stops[index + 1] || 100;
+    const currentColor = colors[index];
     
     result.push({
       min: currentStop,
       max: nextStop,
       name: nextStop === 100 ? `> ${currentStop}%` : `${currentStop}-${nextStop}%`,
-      stroke: colors[index]
+      stroke: colorsMap[currentColor] || currentColor
     });
   
     return result;
@@ -211,7 +215,7 @@ const countWays = (countWaysJob, input, query, cb) => {
   next();
 };
 
-const exportGeoJSON = (output, categories, wayGradientsMap) => {
+const createGeoJSON = (categories, wayGradientsMap) => {
   let gradients = initializeGradients(categories.length);
 
   Object.entries(wayGradientsMap).forEach(([wayId, wayGradients]) => {
@@ -232,15 +236,30 @@ const exportGeoJSON = (output, categories, wayGradientsMap) => {
     })),
   };
 
-  fs.writeFileSync(output, JSON.stringify(geojson, null, 0));
-
   return geojson;
 };
 
+const exportGeoJSON = (path, geojson) => {
+  fs.writeFileSync(path, JSON.stringify(geojson, null));
+}
+
+const exportKML = (path, geojson, command) => {
+  const kml = tokml(geojson, {
+    documentName: path,
+    documentDescription: command,
+    name: 'name',
+    simplestyle: true
+  });
+
+  fs.writeFileSync(path, kml);
+}
+
 module.exports = {
   countWays,
+  createGeoJSON,
   createQuery,
   createCategories,
   exportGeoJSON,
+  exportKML,
   processWays
 }
