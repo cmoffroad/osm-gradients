@@ -4,6 +4,7 @@ const osmium = require('osmium');
 const hgt = require('node-hgt');
 const haversine = require('haversine');
 const tokml = require('tokml');
+const child_process = require('child_process');
 
 const colorsMap = require('./colors');
 
@@ -254,6 +255,10 @@ const exportKML = (path, geojson, command) => {
   fs.writeFileSync(path, kml);
 }
 
+const openFile = (path) => {
+  child_process.exec(`open ${path}`);
+}
+
 module.exports = {
   countWays,
   createGeoJSON,
@@ -261,5 +266,6 @@ module.exports = {
   createCategories,
   exportGeoJSON,
   exportKML,
+  openFile,
   processWays
 }
