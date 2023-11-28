@@ -11,31 +11,35 @@ const colorsMap = require('./colors');
 const PATTERN_KEY = '([^!=~]+)';
 const PATTERN_VALUE = PATTERN_KEY;
 
-function createQuery (filter) {
-  return filter
-    .split(/\]|\[/)
-    .filter(s => s.length)
-    .map(i =>  {
-      let m;
-      if (m = i.match(`^${PATTERN_KEY}$`)) {  
-        /* exists */ return `( o.tags["${m[1]}"] !== undefined )`;
-      } else if (m = i.match(`^!${PATTERN_KEY}$`)) { 
-        /* not exist */ return `( o.tags["${m[1]}"] === undefined )`;
-      } else if (m = i.match(`^${PATTERN_KEY}=${PATTERN_VALUE}$`)) {
-        /* equals */ return `( o.tags["${m[1]}"] == "${m[2]}" )`;
-      } else if (m = i.match(`^${PATTERN_KEY}!=${PATTERN_VALUE}$`)) {
-        /* note equals */ return `( o.tags["${m[1]}"] !== undefined && o.tags["${m[1]}"] != "${m[2]}" )`;
-      } else if (m = i.match(`^${PATTERN_KEY}~${PATTERN_VALUE}$`)) {
-        /* matches value */ return `( o.tags["${m[1]}"] !== undefined && o.tags["${m[1]}"].match("${m[2]}") )`;
-      } else if (m = i.match(`^${PATTERN_KEY}!~${PATTERN_VALUE}$`)) {
-        /* not match value */ return `( o.tags["${m[1]}"] !== undefined && !o.tags["${m[1]}"].match("${m[2]}") )`;
-      } else if (m = i.match(`^~${PATTERN_KEY}~${PATTERN_VALUE}$`)) {
-        /* matches key value */ return `( Object.keys(o.tags).some(k => k.match("${m[1]}") && o.tags[k].match("${m[2]}")) )`;
-      } else {
-        return `false`
-      }
-    })
-    .join(` && `);
+function createQuery (filters) {
+  return filters
+    .map(filter =>
+      filter
+      .split(/\]|\[/)
+      .filter(s => s.length)
+      .map(i =>  {
+        let m;
+        if (m = i.match(`^${PATTERN_KEY}$`)) {
+          /* exists */ return `( o.tags["${m[1]}"] !== undefined )`;
+        } else if (m = i.match(`^!${PATTERN_KEY}$`)) {
+          /* not exist */ return `( o.tags["${m[1]}"] === undefined )`;
+        } else if (m = i.match(`^${PATTERN_KEY}=${PATTERN_VALUE}$`)) {
+          /* equals */ return `( o.tags["${m[1]}"] == "${m[2]}" )`;
+        } else if (m = i.match(`^${PATTERN_KEY}!=${PATTERN_VALUE}$`)) {
+          /* note equals */ return `( o.tags["${m[1]}"] !== undefined && o.tags["${m[1]}"] != "${m[2]}" )`;
+        } else if (m = i.match(`^${PATTERN_KEY}~${PATTERN_VALUE},i$`)) {
+          /* matches value */ return `( o.tags["${m[1]}"] !== undefined && o.tags["${m[1]}"].match(new RegExp("${m[2]}", "i")) )`;
+        } else if (m = i.match(`^${PATTERN_KEY}!~${PATTERN_VALUE},i$`)) {
+          /* not match value */ return `( o.tags["${m[1]}"] !== undefined && !o.tags["${m[1]}"].match(new RegExp("${m[2]}", "i")) )`;
+        } else if (m = i.match(`^~${PATTERN_KEY}~${PATTERN_VALUE},i$`)) {
+          /* matches key value */ return `( Object.keys(o.tags).some(k => k.match(new RegExp("${m[1]}", "i")) && o.tags[k].match(new RegExp("${m[2]}", "i"))) )`;
+        } else {
+          return `false`
+        }
+      })
+      .join(` && `)
+    )
+    .join(` || `);
 }
 
 const evalObject = (o, template) => {
@@ -47,14 +51,14 @@ const createCategories = function (stops, colors) {
     const currentStop = stop;
     const nextStop = stops[index + 1] || 100;
     const currentColor = colors[index];
-    
+
     result.push({
       min: currentStop,
       max: nextStop,
       name: nextStop === 100 ? `> ${currentStop}%` : `${currentStop}-${nextStop}%`,
       stroke: colorsMap[currentColor] || currentColor
     });
-  
+
     return result;
   }, []);
 };
@@ -127,7 +131,7 @@ const fillNodeElevations = function (coords, tileSet, categories, cb) {
 
 const filterWay = (way, query) => {
   const object = {
-    ...way, 
+    ...way,
     tags: way.tags()
   };
   return object.type === 'way' && evalObject(object, query);
@@ -147,7 +151,7 @@ const processWays = (processWaysJob, input, query, categories, cache, cb) => {
       try {
         const wayId = way.id;
         const coords = way.node_coordinates().map(c => ({ lat: c.lat, lng: c.lon }));
-        
+
         tasks.push(cb => {
           processWaysJob.inc();
           async.waterfall([

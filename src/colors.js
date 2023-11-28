@@ -1,6 +1,6 @@
 // https://github.com/colorjs/color-name/blob/master/index.js
 
-module.exports = { 
+module.exports = {
   aliceblue: '#f0f8ff',
   antiquewhite: '#faebd7',
   aqua: '#00ffff',
