@@ -48,6 +48,8 @@ status.start({
 const categories = createCategories(stops, colors);
 const query = createQuery(filters);
 
+console.log(query)
+
 countWays(status.addItem('count'), input, query, (max) => {
 
   processWays(status.addItem('process', { max }), input, query, categories, cache, (wayGradientsMap) => {
