@@ -30,22 +30,24 @@ program
   .requiredOption('-f, --filters <filters...>', 'Overpass Query to filter input ways (e.g. way[highway=path][~"sac_scale|mtb:scale"~"."])')
   .option('-k, --kml <path>', 'Output file path for the KML layers. (*.kml). Default is the input file path with .kml extension')
   .option('-g, --geojson <path>', 'Output file path for the GeoJSON layers. (*.geojson). Default is the input file path with .geojson extension')
-  .option('-o, --open', 'Automatically open KML output file')
+  .option('-x, --open', 'Automatically open KML output file')
   .option('-d, --cache [directory]', 'Directory path to store SRTM elevation tiles (default: "./tmp/")', './tmp/')
+  .option('-w, --width [pixels]', 'The width of the gradient lines. (default: 2)', (val) => parseInt(val), 2)
+  .option('-o, --opacity [float]', 'The opacity of the gradient lines. (default: 1.0)', (val) => parseFloat(val), 1.0)
   .parse(process.argv);
 
 const command = `npx osm-gradients ${process.argv.slice(2).join(' ')}`
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-const { input, geojson, kml, cache, stops, colors, filters, open } = program.opts();
+const { input, geojson, kml, cache, stops, colors, filters, open, width, opacity } = program.opts();
 
 status.start({
   pattern: ` {spinner.cyan} {uptime.yellow} | Ways: {count.default.green} | {process.bar.cyan} {process.percentage.green}`,
   precision: 0
 });
 
-const categories = createCategories(stops, colors);
+const categories = createCategories(stops, colors, width, opacity);
 const query = createQuery(filters);
 
 console.log(query)

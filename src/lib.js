@@ -46,7 +46,7 @@ const evalObject = (o, template) => {
   return eval(template);
 };
 
-const createCategories = function (stops, colors) {
+const createCategories = function (stops, colors, width, opacity) {
   return stops.reduce((result, stop, index) => {
     const currentStop = stop;
     const nextStop = stops[index + 1] || 100;
@@ -56,7 +56,9 @@ const createCategories = function (stops, colors) {
       min: currentStop,
       max: nextStop,
       name: nextStop === 100 ? `> ${currentStop}%` : `${currentStop}-${nextStop}%`,
-      stroke: colorsMap[currentColor] || currentColor
+      stroke: colorsMap[currentColor] || currentColor,
+      "stroke-width": width,
+      "stroke-opacity": opacity
     });
 
     return result;

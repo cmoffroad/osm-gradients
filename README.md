@@ -23,8 +23,10 @@ Derived from the excellent work of https://github.com/perliedman/osm-slope.
 	-f, --filters <filters...>      Overpass Query to filter input ways (e.g. '[highway=path])')
 	-k, --kml <path>                Output file path for the KML layers. (*.kml). Default is the input file path with .kml extension
 	-g, --geojson <path>            Output file path for the GeoJSON layers. (*.geojson). Default is the input file path with .geojson extension
-	-o, --open                      Automatically open KML output file
+	-x, --open                      Automatically open KML output file
 	-d, --cache [directory]         Directory path to store SRTM elevation tiles (default: "./tmp/")
+	-w, --width [pixels]            The width of the gradient lines. (default: 2)
+  	-o, --opacity [float]           The opacity of the gradient lines. (default: 1.0)
 
 ## Example
 
@@ -34,7 +36,9 @@ Derived from the excellent work of https://github.com/perliedman/osm-slope.
 		-s 0 15 20 25 30 35 40 \
 		-c green yellow orange red purple brown black \
 		-f '[highway=path]' \
-		-o
+		-w 2
+		-o 1.0
+		-x
 
 ![](./docs/screenshot.png)
 
