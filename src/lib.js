@@ -163,7 +163,7 @@ const processWays = (processWaysJob, input, query, categories, cache, cb) => {
             if (err) {
               return cb(err);
             }
-            wayGradientsMap[wayId] = wayGradients;
+            wayGradientsMap[wayId] = { gradients: wayGradients, coords, tags: way.tags() };
             cb(undefined, wayGradients);
           });
         });
@@ -223,25 +223,50 @@ const countWays = (countWaysJob, input, query, cb) => {
 };
 
 const createGeoJSON = (categories, wayGradientsMap) => {
-  let gradients = initializeGradients(categories.length);
+  let gradientsMap = initializeGradients(categories.length);
 
-  Object.entries(wayGradientsMap).forEach(([wayId, wayGradients]) => {
-    wayGradients.forEach((points, index) => {
-      gradients[index].push(...points);
+  const ways = [];
+
+  Object.entries(wayGradientsMap).forEach(([id, attrs]) => {
+    const { gradients, coords, tags } = attrs;
+    ways.push({ id, tags, coords });
+    gradients.forEach((points, index) => {
+      gradientsMap[index].push(...points);
     });
   });
 
-  const geojson = {
-    type: 'FeatureCollection',
-    features: categories.map((category, index) => ({
-      type: 'Feature',
-      geometry: {
-        type: 'MultiLineString',
-        coordinates: gradients[index],
-      },
-      properties: category,
-    })),
-  };
+  if (!categories.length) {
+    return {
+      type: 'FeatureCollection',
+      features: [
+        ...ways.map(({id, tags, coords}) => ({
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: coords.map(({lat, lng}) => ([lng, lat]))
+          },
+          properties: {
+            id,
+            ...tags
+          }
+        }))
+      ]
+    };
+  } else {
+    return {
+      type: 'FeatureCollection',
+      features: [
+        ...categories.map((category, index) => ({
+          type: 'Feature',
+          geometry: {
+            type: 'MultiLineString',
+            coordinates: gradientsMap[index],
+          },
+          properties: category,
+        }))
+      ]
+    };
+  }
 
   return geojson;
 };
